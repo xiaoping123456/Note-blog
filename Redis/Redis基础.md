@@ -1,6 +1,4 @@
-# Redis
-
-
+# Redis基础
 
 ## 认识NoSql
 
@@ -327,3 +325,85 @@ public class JedisConnectionFactory {
 }
 ```
 
+### RedisTemplate
+
+SpringDataRedis中提供了RedisTemplate工具类，其中封装了各种对Redis的操作。并且将不同数据类型的操作API封装到了不同的类型中。
+
+![image-20220715084057364](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220715084057364.png)
+
+**SpringDataRedis**
+
+SpringData是Spring中数据操作的模块，包含对各种数据库的集成，其中对Redis的集成模块就叫做SpringDataRedis
+
+特性：
+
+1. 提供了对不同Redis客户端的整合（Lettuce和Jedis）
+2. 提供了RedisTemplate统一API来操作Redis
+3. 支持Redis的发布订阅模型
+4. 支持Redis哨兵和Redis集群
+5. 支持基于Lettuce的响应式编程
+6. 支持基于JDK、JSON、字符串、Spring对象的数据序列化及反序列化
+7. 支持基于Redis的JDKCollection实现
+
+#### RedisTemplate的序列化方式
+
+RedisTemplate可以接收任意Object作为值写入Redis，只不过写入前会把Object序列化为字节形式，默认采用JDK序列化。
+
+![image-20220715110240718](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220715110240718.png)
+
+![image-20220715110629413](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220715110629413.png)
+
+缺点：1）可读性差 2）内存占用较大
+
+**可以自定义RedisTemplate的序列化方式**
+
+1. JSON序列化器
+
+   ```
+   @Bean
+   public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory){
+   	//创建RedisTemplate对象
+   	RedisTemplate<String, Object> template = new RedisTemplate<>();
+   	//创建连接工厂
+   	template.setConnectionFactory(connectionFactory);
+   	//创建JSON序列化工具
+           GenericJackson2JsonRedisSerializer jsonRedisSerializer = new 	GenericJackson2JsonRedisSerializer();
+       //设置key的序列化
+       template.setKeySerializer(RedisSerializer.string());
+       template.setHashKeySerializer(RedisSerializer.string());
+       //设置value的序列化
+       template.setValueSerializer(jsonRedisSerializer);
+       template.setHashValueSerializer(jsonRedisSerializer);
+       //返回
+       return template;
+   }
+   ```
+
+   **JSON的序列化方式会带来额外的内存**，原因时为了在反序列化时知道对象的类型，JSON序列化器会将类的class类型写入json结果中，存入redis。
+
+   ![image-20220715114635206](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220715114635206.png)
+
+2. String序列化器
+
+   为了节省内存空间，我们并不会使用JSON序列化器来处理value，而是**统一使用String序列化器**，要求只能存储String类型的key和value。当需要存储Java对象时，**手动完成对象的序列化和反序列化**。
+
+   ```
+   @Autowired
+   private StringRedisTemplate redisTemplate;
+   
+   private static final ObjectMapper mapper = new ObjectMapper();
+   
+   @Test
+   void testSaveUser() throws JsonProcessingException {
+       User user = new User("zs", 21);
+       //手动序列化成JSON
+       String json = mapper.writeValueAsString(user);
+       redisTemplate.opsForValue().set("user:100",json);
+       String jsonForUser = redisTemplate.opsForValue().get("user:100");
+       //手动反序列化
+       User user1 = mapper.readValue(jsonForUser, User.class);
+       System.out.println(user1);
+   }
+   ```
+
+![image-20220715121003948](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220715121003948.png)
