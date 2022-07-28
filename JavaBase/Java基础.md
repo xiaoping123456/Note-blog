@@ -115,7 +115,19 @@ Java源代码---->编译器---->jvm可执行的Java字节码(即虚拟指令)---
 2. 接口（interface）
 3. 数组（[]）
 
+#### 不同数据类型之间的运算法则
 
+1. 若参与运算的数据类型不同，则先转换成同一类型，然后进行运算。
+
+2. 转换按数据长度增加的方向进行，以保证精度不降低。例如int型和long型运算时，先把int量转成long型后再进行运算。
+
+3. 所有的[浮点](https://so.csdn.net/so/search?q=浮点&spm=1001.2101.3001.7020)运算都是以双精度进行的，即使仅含float单精度量运算的表达式，也要先转换成double型，再作运算。
+
+4. char型和short型参与运算时，必须先转换成int型。
+
+5. 在赋值运算中，赋值号两边的数据类型不同时，需要把右边[表达式](https://so.csdn.net/so/search?q=表达式&spm=1001.2101.3001.7020)的类型将转换为左边变量的类型。如果右边表达式的数据类型长度比左边长时，将丢失一部分数据，这样会降低精度。
+
+   
 
 ### 运算符
 
@@ -141,6 +153,17 @@ Java源代码---->编译器---->jvm可执行的Java字节码(即虚拟指令)---
 
 https://blog.csdn.net/weixin_39410864/article/details/123000487
 
+1. 与运算 (&)  : 二元运算符，两个为1时结果为1，否则为0
+
+2. 或运算 (|)    :二元运算符，两个其中有一个为1时结果就为1，否则为0
+
+3. 异或运算 (^)  : 二元运算符，两个数同时为1或0时结果为1，否则为0
+
+4. 取反运算 (~)    :一元运算符，取反操作
+5. 左移（<<）：一元运算符，按位左移一定的位置。高位溢出，低位补符号位，符号位不变。
+6. 右移（>>）：一元运算符，按位右移一定的位置。高位补符号位，符号位不变，低位溢出。
+7. 无符号右移（>>>）：一元运算符，符号位（即最高位）保留，其它位置向右移动，高位补零，低位溢出。
+
 左移位相当于 *(2^n)
 
 右移位相当于 /(2^n)
@@ -165,6 +188,69 @@ x = y = 10;
 
 int n, m=n=10;	//正确
 int m=n=10;		//报错， n没有声明
+```
+
+### 循环
+
+#### Switch
+
+switch后的表达式，只能是byte,short,int,char四种类型，枚举(jdk1.5开始支持)，String（java7开始支持）。
+
+case后的常量不能重复
+
+只用遇到break才会结束，遇不到会进入下一个case后的代码块执行
+
+default可以没有
+
+#### do...while
+
+do...while必须以分号结束
+
+#### while与do...while的区别
+
+1. 语法：while是条件在前，循环体在后，do...while是循环体在前，循环体在后
+2. 执行：while先判断条件，再执行循环体，do...while是先执行循环体，再判断条件
+3. 结果：while循环体可能一次也不执行，do...while的循环体至少会执行一次
+
+#### 增强for循环
+
+foreach
+
+作用：对集合进行遍历
+
+```
+for (数据类型 变量名 : 集合) {
+	循环体;
+}
+```
+
+执行过程：
+
+1. 尝试从集合中取出一个元素，放到变量中
+2. 如果取出来了，进入循环体执行，在循环体中可以使用变量访问当前的元素
+3. 循环体执行完成后，回到1. 尝试从集合中再取下一个元素
+4. 如果取不出来，结束整个循环
+
+#### 跳出嵌套循环
+
+如果想让break或continue**针对某一个指定的循环**起作用，那么可以使用label标签给循环起名字，然后使用break或continue加上循环的名字即可
+
+示例：
+
+```
+// for循环语句前面的test1：和test2：就是lable标签，具体标签起什么名字有你自己决定
+
+test1:for(int i=0;i<3;i++){
+	//外层循环    
+	test2:for(int j=0;j<5;j++){
+	//内层循环        
+		if(j==2){
+			//直接跳出有test1标签的这个循环
+	   		 break test1;       
+	    }        	
+	    System.out.println("i="+i+",j="+j);   }    
+	    System.out.println("----------------------");
+}
 ```
 
 
@@ -207,7 +293,14 @@ public : 对所有类可见。使用对象：类、接口、变量、方法
 
 3. finalize是一个方法，属于Object类的一个方法，而Object类是所有类的父类，该方法一般由垃圾回收器来调用，当我们调用System.gc() 方法的时候，由垃圾回收器调用finalize()，回收垃圾，一个对象是否可回收的最后判断。
 
-   
+
+
+
+#### native 
+
+native关键字说明其修饰的方法是一个原生态方法（本地方法），方法对应的实现不是在当前文件，而是在用其他语言（如C和C++）实现的文件中。Java语言本身不能对操作系统底层进行访问和操作，但是可以通过JNI接口调用其他语言来实现对底层的访问。
+
+
 
 #### this
 
@@ -336,7 +429,23 @@ this()和super()都指的是对象，所以，均不可以在static环境中使�
 
 2. 非静态既可以访问静态的，也可以访问非静态的
 
-   
+3. 静态代码块在构造方法之前执行，静态代码块和静态变量的执行顺序是代码中出现的先后顺序
+
+#### 关键字的限制
+
+1） 权限修饰符中的protected、private只能修饰类内部的东西，不能修饰外部类。
+
+2） 在一个Java文件中最多只能有一个公共的类、接口、枚举，而且必须与文件名一样。
+
+3） abstract、final是不能联用的。
+
+4） 修饰方法时，static与abstract不能联用。修饰内部类时，static和abstract联用。
+
+5） static 只能修饰内部类。
+
+6） static、final同时修饰属性时，就是静态常量。static、final可以同时修饰内部类，方法；
+
+
 
 ## 面向对象
 
@@ -382,8 +491,8 @@ this()和super()都指的是对象，所以，均不可以在static环境中使�
 
 1. 子类拥有父类非 private 的属性和方法。
 
-		2. 子类可以拥有自己属性和方法，即子类可以对父类进行扩展。
-		2. 子类可以用自己的方式实现父类的方法（重写）。
+2. 子类可以拥有自己属性和方法，即子类可以对父类进行扩展。
+2. 子类可以用自己的方式实现父类的方法（重写）。
 
 #### 多态
 
@@ -397,11 +506,44 @@ this()和super()都指的是对象，所以，均不可以在static环境中使�
 
 java实现多态有3个必要条件：继承、重写、向上转型
 
-**向上转型**：上转型对象可以调用被子类继承的变量和方法，不能调用子类自己创建的变量和方法，
+**向上转型**：上转型对象的特点：
+
+**1） 上转型对象只能调用父类声明的属性和方法。**
+
+**2） 上转型对象在调用子类重写的方法，执行的是子类的方法。**
 
 向上转型对多态性的体现：不同的子类在重写父类的方法时可能产生不同的行为。
 
-上转型对象 创建的子类对象，并将这个对象的引用赋值给父类对象。
+上转型对象： 创建的是子类对象，并将这个对象的引用赋值给父类对象。
+
+##### 重写
+
+在继承关系下，子类中出现了和父类方法名以及参数列表都相同的方法，这种情况子类重写了父类的方法。
+
+方法重写时返回值类型不能大于父类方法的范围，权限修饰符不能小于父类的范围。私有的方法不算重写
+
+##### 重载
+
+在一个类中，如果出现方法名相同，但是参数列表不同的方法，叫做方法的重载。
+
+1. 参数的数量不同
+2. 参数的数据类型不同
+3. 参数的顺序不同
+
+以上3项满足一项，就代表参数列表不同
+
+**不构成重载的条件**
+
+1. 参数名不同
+2. 返回值类型不同
+
+在JVM中每一个方法的唯一标识由：包名，类名，方法名，参数列表（参数数量，数据类型，顺序）组成
+
+**重载方法的调用**
+
+重载方法的调用，由实参的数据类型决定，不是由实参的值的数据类型决定。
+
+调用时，会寻找数据类型最为匹配的方法进行调用（就近原则）
 
 #### 抽象（第四特性）
 
@@ -624,6 +766,111 @@ public class Outer {
 
 4. 匿名内部类可以很方便的定义回调。
 
+### 类加载过程
+
+ClassLoader加载类需要3个步骤：
+
+1. 加载：
+
+   通过一个类的全限定名加载该类对应的二进制字节流。主要通过类加载器实现。
+
+   将字节流所代表的静态存储结构转化为方法区的运行时数据结构。
+
+   在内存中生成一个代表这个类的java.lang.Class对象，作为方法区各个类访问该类的入口。（Hotspot 在方法区生成该类）。
+
+2. 连接：包含3个步骤
+
+   1）验证：
+
+   - 文件格式验证：验证类文件的魔术版本号常量等是否符合当前虚拟机支持的范围。
+
+   - 元数据验证：验证类的语义信息，是否符合java语言规范的要求。
+
+   - 字节码验证：验证程序语义是合法的、合乎规范的。主要通过stackmapframe结构。
+
+   - 符号引用验证：虚拟机在将符号引用转化为直接引用，验证符号引用全限定名代表的类是否能够找到，对应的域和方法是否能找到，访问权限是否合法。
+
+   2）准备：对类的静态成员进行内存的分配，静态属性会设置为类0值
+
+   3）解析：
+
+   - 类或接口解析：将符合引用转化为类的直接引用，并检查访问权限。
+
+   - 字段解析：将字段的符号引用转化为字段所属的类信息或其父类该字段的直接引用，并检查访问权限。
+
+   - 类方法解析：将类方法的符号引用转化为类方法所属的类信息或其父类该字段的直接引用，并检查访问权限。
+
+   - 接口方法解析：将接口方法的符号引用转化为接口方法所属的接口信息或其父类该字段的直接引用，并检查访问权限。
+
+3. 初始化：
+
+   初始化阶段编译器会将类文件声明的静态赋值变量和静态区域合并生成<cinit>方法并进行调用。
+
+   该阶段将按照代码顺序，执行静态属性的显式赋值，以及静态代码块。
+
+   当类被使用时，首先加载和连接类，并不一定会进行类的初始化操作。
+
+   只有以下几种情况，才会触发类的初始化：
+
+   1） 创建类的对象、调用静态属性、执行静态方法时，如果类没有初始化，则触发初始化操作。
+
+   2） 对类进行反射操作。
+
+   3） 初始化一个类时，首先初始化父类。
+
+   4） 当使用Jdk1.7的动态语言支持时，如果一个java.lang.invoke.MethodHandle实例最后的解析结果REF_getstatic、REF_putstatic、REF_inokestatic的方法句柄，并且这个方法句柄所对应的类没有进行初始化时，触发该类初始化。
+
+   ![image-20220714172933798](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220714172933798.png)
+
+   初始化简单来讲就是 执行类中的静态代码，静态属性的初始化操作，以及静态块中的代码。
+
+   **静态代码块和静态变量之间的执行顺序决定于它们在代码中出现的顺序。** 
+
+   因此创建一个类的对象时：
+
+   **静态块 -> 块 -> 构造方法**
+
+   继承关系下：
+
+   **子类初始化前，要先初始化父类。** **子类执行初始化时，先保证父类的初始化操作已经开始，不保证父类的初始化一定完成。**
+
+   **父类静态块 -> 子类的静态块 -> 父类的块 -> 父类的构造方法 -> 子类的块 -> 子类的构造方法**
+
+
+
+#### 经典案例
+
+1. 静态变量的声明在编译时就已经明确，所以静态变量的声明与初始化在编码顺序上可以颠倒
+
+   ```java
+   static{
+       i = 10;  //正确
+       i++;	//错误
+       i+=1;	//错误，因为此时静态变量只是声明，并没有值，所以不能使用，只有在初始化后才可以使用
+   }
+   static int i;
+   
+   static{
+       i++;
+   }
+   
+   public static void main(String[] args) {
+       System.out.println(i);
+   }
+   ```
+
+   
+
+2. 
+
+
+
+
+
+
+
+
+
 ## 对象相等判断
 
 ### ==和equals的区别
@@ -683,7 +930,7 @@ System.out.println(set.size());
 ```
 @Override
 public int hashCode() {
-    return Objects.hash(name, age);
+    return Objects.hash(args...);
 }
 ```
 
@@ -696,3 +943,903 @@ ans：是值传递。Java 语言的方法调用只支持参数的值传递。当
 **值传递与引用传递的区别**
 
 值传递：指的是在方法调用时，传递的参数是按值的拷贝传递，传递的是值的拷 贝，也就是说传递后就互不相关了。 引用传递：指的是在方法调用时，传递的参数是按引用进行传递，其实传递的引 用的地址，也就是变量所对应的内存空间的地址。传递的是值的引用，也就是说 传递前和传递后都指向同一个引用（也就是同一个内存空间）。
+
+## 常用类
+
+### Object类
+
+Object类时java类体系结构中的跟类
+
+Object类时所有的Java类的父类。
+
+#### clone()
+
+克隆就是创建当前对象的一个副本，如果想实现类的clone()方法，必须实现接口Cloneable
+
+注：Object类的clone()是一种浅克隆
+
+#### 深克隆和浅克隆
+
+浅克隆：只复制对象本身，对象内的引用只会复制它的值  （即克隆的对象中的引用类型属性和之前的对象指向同一个引用）
+
+深克隆：不只复制对象本身，对象内的引用也会创建一个副本
+
+### String、StringBuilder、StringBuffer
+
+#### String类
+
+在Java中由""包括起来的字符串都是String类的一个实例。
+
+字符串是常量（因为String的value是被value修饰的，所以是常量），一旦创建不能修改。
+
+在java中，使用""创建的字符串对象，是放在常量池中，在早期JDK版本中常量池位于永久代，永久代在方法区中。JDK8常量池被转移到了堆中。
+
+#### StringBuilder类
+
+StringBuilder类是用来表示可变字符串的，表示字符序列的数组不是final，当StringBuilder中的字符数量超出容量时，字符序列数组会自动扩容。
+
+源码：
+
+1） 无参构造方法，创建的可变字符串初始容量是16。
+
+2） 有参数构造，可以指定初始容量。
+
+3） 如果传递的是字符串，初始容量=字符串的长度+16。
+
+4） 当追加字符序列，如果容量不够，会扩容。
+
+扩容容量 = 2n + 2； (n<<1 + 2)
+
+如果还不够，扩容容量 = 最小容量需求。
+
+如果扩容时 发生了数据溢出，则抛出异常
+
+#### StringBuffer类
+
+功能与StringBuilder基本一致，除了这个类是线程安全的。效率略低。。。
+
+在每一个操作方法前加synchronized关键字。
+
+## 包装类
+
+包装类就是基本数据类型面向对象的处理方式。
+
+Java 为每个原始类型提供了包装类型：
+
+原始类型: boolean，char，byte，short，int，long，float，double
+
+包装类型：Boolean，Character，Byte，Short，Integer，Long，Float，Double
+
+包装类型的变量可以赋为null
+
+**自动装箱与拆箱**
+
+- 装箱：将基本类型用他们**对应**的应用类型包装起来
+
+自动装箱时，实际是隐式地创建了包装类地对象
+
+1）Byte,Short,Character可以赋值为整数值、字符
+
+2）其他情况必须赋值为相应地数据类型
+
+当直接赋值为常量值时，Byte、Short、Integer、Character会将对象存放到常量池中。
+
+整数只会将 -128~127 这些数值放到常量池中,出了这个范围，还是会在堆内存中创建对象。
+
+Character类型会将0-127对应的字符放到常量池中。
+
+```
+Integer i1 = 10;
+Integer i2 = 10;
+System.out.println(i1 == i2);  //true  i1,i2都指向常量池中的10
+Character c1 = 127;
+Character c2 = 127;
+System.out.println(c1 == c2);  //true  c1,c2都指向常量池中的127
+
+Integer i3 = 128;
+Integer i4 = 128;
+System.out.println(i3 == i4);  //false 128超出了常量池的范围，因此这两个对象会创建在堆中
+```
+
+
+
+- 拆箱：将包装类型转换为基本数据类型 （只要符合基本类型的自动转换即可）
+
+```
+Character c = 'a';
+Integer i = 10;
+
+char c1 = c;
+int i1 = c;		//√ 先将包装类拆箱成对应的基本数据类型，再自动转换成其他基本数据类型
+
+Long l = 10L;
+int i2 = l;		//× long->int 不能自动转换
+
+int i2 = i + c;	//√
+
+```
+
+
+
+注：**包装类内部的value都被final修饰，是不可变的。每次值被修改，都是创建了新的对象。**
+
+```
+Integer i = 128;
+i++;		//创建一个新的对象 再赋给i
+```
+
+**包装类型的运算**
+
+如果在一个表达式中，包含了包装类型，这时将自动拆箱成基本数据类型再进行运算。
+
+==，!= 在比较两个包装类型时，不会对包装类进行拆箱。
+
+不同的包装类不能用==和!=比较   
+
+**包装类型的赋值**
+
+基本数据类型可以自动转换，而包装类应该使用相应的基本数据类型进行赋值
+
+Byte，Short，Char，既可以用整数，也可以用字符  (但是都要在范围内)
+
+```java
+Double d = 45D;
+Double d2 = 45.0;
+Double d3 = 45;    //错，45是int，不是double，需要加上d/D变成double
+
+Float f = 45F;
+Float f2 = 45.0;
+Float f3 = 45;	   //错，45是int，不是float，需要加上f/F变成float
+
+Long l = 100L;
+Long l2 = 100;	//错
+Long l3 = 100l;	//错，100是int，不是long，需要加上L变成long，不能是l
+```
+
+
+
+
+
+## 泛型
+
+### 概述
+
+**泛型的本质是参数化类型**，即给类型指定一个参数，然后在使用时再指定此参数具体的值，那样这个类型就可以在使用时决定了。这种参数类型可以用在类、接口和方法中，分别被称为泛型类、泛型接口、泛型方法。
+
+#### 为什么使用泛型？
+
+泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，提高代码的重用率。
+
+1. 保证了类型的安全性
+
+   在没有泛型之前，从集合中读取到的每一个对象都必须进行类型转换，如果不小心插入了错误的类型对象，在运行时的转换处理就会出错。
+
+   相当于告诉编译器每个集合接收的对象类型是什么，编译器在编译期就会做类型检查，告知是否插入了错误类型的对象，使得程序更加安全，增强了程序的健壮性。
+
+2. 消除强制转换
+
+3. 避免了不必要的装箱、拆箱操作，提高程序的性能
+
+   在非泛型编程中，将筒单类型作为Object传递时会引起Boxing（装箱）和Unboxing（拆箱）操作，这两个程都是具有很大开销的。引入泛型后，就不必进行Boxing和Unboxing操作了，所以运行效率相对较高，特别在对集合操作非常频繁的系统中，这个特点带来的性能提升更加明显。
+
+   泛型变量固定了类型，使用的时候就已经知道是值类型还是引用类型，避免了不必要的装箱、拆箱操作。
+
+4. 提高了代码的重用性
+
+### 定义泛型
+
+**注意事项：泛型类型必须是引用类型（非基本数据类型）**
+
+**如果有泛型方法和非泛型方法,都满足条件,会执行非泛型方法**
+
+```
+T：任意类型 type （使用时要一致）
+E：集合中元素的类型 element
+K：key-value形式 key
+V：key-value形式 value
+N：Number（数值类型）
+?：表示不确定的java类型
+```
+
+
+
+#### 泛型类
+
+在定义类的时，声明泛型
+
+定义泛型类，在类名后添加一对尖括号，并在尖括号中填写类型参数，参数可以有多个，多个参数使用逗号分隔
+
+
+
+```java
+public 类名<泛型声明1,泛型声明2>{
+}
+
+eg：
+public class Test<T>{
+    //使用泛型定义属性
+    private T name;
+    
+    public void setName(T name){
+       	this.name = name;
+    }
+    public T getName(){
+        return this.name;
+    }
+    
+}
+```
+
+#### 泛型方法
+
+在定义方法时，声明泛型
+
+返回值类型或者参数列表中必须出现T，指定T代表什么类型
+
+```java
+修饰符 <声明自定义的泛型> 返回值类型 方法名(参数列表){
+	方法体;
+}
+
+eg:
+public <T> void test(T t){
+}
+//将泛型作为方法的返回值类型
+public <T> T test2(T t){
+}
+test("java");       //T 代表String
+//使用反射确定泛型
+public <T> test(Class<T> cls){
+}
+teset(Staff.class);  //T 代表Staff
+
+```
+
+### 泛型通配符
+
+```
+// 1：表示类型参数可以是任何类型
+ 
+public class Apple<?>{} 
+ 
+// 2：表示类型参数必须是A或者是A的子类
+ 
+public class Apple<T extends A>{} 
+ 
+// 3: 表示类型参数必须是A或者是A的超类型
+ 
+public class Apple<T supers A>{}
+```
+
+1. 无边界的通配符 <?>
+
+   表示类型类型可以是任何类型
+
+2. 固定上边界的通配符 <? extends E>
+
+   使用固定上边界的通配符的泛型, 就能够接受指定类及其子类类型的数据。
+
+   要声明使用该类通配符, 采用<? extends E>的形式, 这里的E就是该泛型的上边界。
+
+   注意: 这里虽然用的是extends关键字, 却不仅限于继承了父类E的子类, 也可以代指显现了接口E的类
+
+3. 使用固定下边界的通配符的泛型, 就能够接受指定类及其父类类型的数据.。
+
+   要声明使用该类通配符, 采用<? super E>的形式, 这里的E就是该泛型的下边界.。
+
+   注意: 你可以为一个泛型指定上边界或下边界, 但是不能同时指定上下边界。
+
+### `<T>`和`<?>`的区别
+
+1. T代表一种类型，即前后要一致（比如一个泛型方法中 所有T代表同一个数据类型）
+
+   ?是通配符，泛指所有类型。即它可以为任意类型，不用保证一致。
+
+2. ?是定义在引用变量上，T是类上或方法上
+
+
+
+## 集合框架
+
+### 概述
+
+#### 集合和数组的区别
+
+1. 数组时固定长度的，集合是可变长度的；
+2. 数组可以存储基本数据类型，也可以存储引用数据类型；而集合只能存储引用数据类型；
+3. 数组存储的元素必须是同一数据类型；集合存储的对象可以是不同数据类型；
+
+#### 容器分类
+
+Java 容器分为 Collection 和 Map 两大类，Collection集合的子接口有Set、 List、Queue三种子接口。
+
+![image-20220719095823198](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220719095823198.png)
+
+![image-20220719095857494](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220719095857494.png)
+
+- List：一个有序（元素存入集合的顺序和取出的顺序一致）容器，元素可以重 复，可以插入多个null元素，元素都有索引。常用的实现类有 ArrayList、LinkedList 和 Vector。
+
+- Set：一个无序（存入和取出顺序有可能不一致）容器，不可以存储重复元素， 只允许存入一个null元素，必须保证元素唯一性。Set 接口常用实现类是 HashSet、 LinkedHashSet 以及TreeSet。
+
+#### 底层数据结构
+
+**List**
+
+- Arraylist： Object数组
+
+- Vector： Object数组
+
+- LinkedList： 双向循环链表 
+
+**Set**
+
+- HashSet（无序，唯一）：基于 HashMap 实现的，底层采用 HashMap 来保存元素
+- LinkedHashSet： LinkedHashSet 继承于 HashSet，并且其内部是通过 LinkedHashMap 来实现的。有点类似于我们之前说的LinkedHashMap 其内部是基 于 Hashmap 实现一样，不过还是有一点点区别的。
+
+- TreeSet（有序，唯一）： 红黑树(自平衡的排序二叉树。) Map
+
+**Map**
+
+- HashMap： JDK1.8之前HashMap由数组+链表组成的，数组是HashMap的主 体，链表则是主要为了解决哈希冲突而存在的（“拉链法”解决冲突）.JDK1.8以后在解决哈希冲突时有了较大的变化，当链表长度大于阈值（默认为8）时，将链表转 化为红黑树，以减少搜索时间
+
+- LinkedHashMap：LinkedHashMap 继承自 HashMap，所以它的底层仍然是 基于拉链式散列结构即由数组和链表或红黑树组成。另外，LinkedHashMap 在上面 结构的基础上，增加了一条双向链表，使得上面的结构可以保持键值对的插入顺序。 同时通过对链表进行相应的操作，实现了访问顺序相关逻辑。
+
+- HashTable： 数组+链表组成的，数组是 HashMap 的主体，链表则是主要为 了解决哈希冲突而存在的
+
+- TreeMap： 红黑树（自平衡的排序二叉树）
+
+#### 哪些集合类是线程安全的？
+
+- vector：就比arraylist多了个同步化机制（线程安全），因为效率较低，现在已 经不太建议使用。
+
+- statck：堆栈类，先进后出。
+
+- hashtable：就比hashmap多了个线程安全。
+
+- enumeration：枚举，相当于迭代器。
+
+#### 集合的快速失败机制 fail-fast
+
+是java集合的一种错误检测机制，当多个线程对集合进行结构上的改变的操作 时，有可能会产生 fail-fast 机制。
+
+因此使用Iterator迭代时 不能修改元素（foreach同理，因为foreach底层是迭代器），但是可以使用`iterator.remove()`方法移除元素
+
+例如：假设存在两个线程（线程1、线程2），线程1通过Iterator在遍历集合A中 的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是简 单的修改集合元素的内容），那么这个时候程序就会抛出ConcurrentModificationException 异常，从而产生fail-fast机制。
+
+原因：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变modCount 的值。每当迭代器使用hashNext()/next()遍历下一个元素之前，都会检测 modCount变量是否为expectedmodCount值，是的话就返回遍历；否则抛出异常，终止遍历。
+
+**解决办法：**
+
+1. 在遍历过程中，所有涉及到改变modCount值得地方全部加上 synchronized。 (同步机制)
+
+2. 使用CopyOnWriteArrayList来替换ArrayList （写入时复制）
+
+#### 迭代器Iterator
+
+Iterator 接口提供遍历任何 Collection 的接口。我们可以从一个 Collection 中使用迭代器方法来获取迭代器实例。迭代器取代了 Java 集合框架中的 Enumeration，迭代器允许调用者在迭代过程中移除元素（**只能使用`iterator.remove()`方法移除元素，不能使用Collection的方法移除**）。
+
+Iterator 的特点是只能单向遍历，在当前遍历的集合元素被更改的时候，就会抛出 ConcurrentModificationException 异常。
+
+**移除元素**
+
+```
+ //正确
+ Iterator<Integer> iterator = list.iterator();
+ while (iterator.hasNext()) {
+     Integer value =  iterator.next();
+     if(value == 111) iterator.remove();
+ }
+ //运行结果中抛出java.util.ConcurrentModificationException异常信息
+ Iterator<Integer> iterator = list.iterator();
+ while (iterator.hasNext()) {
+     Integer value =  iterator.next();
+     if(value == 111) list.remove(Integer.valueOf(111));
+ }
+```
+
+### Collection接口
+
+#### List接口
+
+##### ArrayList的优缺点
+
+优点
+
+- ArrayList 底层以数组实现，是一种随机访问模式。因此查找的时候非常快。
+- ArrayList 在顺序添加一个元素的时候非常方便。
+
+缺点
+
+- 删除元素的时候，需要做一次元素复制操作。如果要复制的元素很多，那么就会比较耗费性能。
+- 插入元素的时候，也需要做一次元素复制操作，缺点同上。
+
+ArrayList 比较适合顺序添加、随机访问的场景。
+
+##### ArrayList和LinkedList的区别是什么？
+
+ArrayList元素访问快，元素增删慢。LinkedList元素访问慢，元素增删快。
+
+- 数据结构实现：ArrayList 是动态数组的数据结构实现，而 LinkedList 是双向链表的数据结构实现。
+
+- 随机访问效率：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
+
+- 增加和删除效率：在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为ArrayList 增删操作要影响数组内的其他数据的下标。
+
+- 内存空间占用：LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
+
+- 线程安全：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全； （相同点）
+
+##### ArrayList和Vector的区别是什么？
+
+都是有序集合（相同点）
+
+Vector目前很少使用
+
+- 线程安全：Vector 使用了 Synchronized 来实现线程同步，是线程安全的，而ArrayList 是非线程安全的。Vector类的所有方法都是同步的。可以由两个线程安全地访问一个Vector对象、但是一个线程访问Vector的话代码要在同步操作上耗费大量的时间。Arraylist不是同步的，所以在不需要保证线程安全时时建议使用Arraylist。
+
+- 性能：ArrayList 在性能方面要优于 Vector。
+
+- 扩容：ArrayList 和 Vector 都会根据实际的需要动态的调整容量，只不过Vector 扩容每次会增加 1 倍，而 ArrayList 只会增加 50%
+
+##### 多线程场景下如何使用ArrayList？
+
+ArrayList 不是线程安全的，如果遇到多线程场景，可以通过 Collections 的synchronizedList 方法将其转换成线程安全的容器后再使用。例如像下面这样：
+
+```
+List<String> synchronizedList = Collections.synchronizedList(list);
+synchronizedList.add("aaa");
+synchronizedList.add("bbb");
+for (int i = 0; i < synchronizedList.size(); i++) {
+	System.out.println(synchronizedList.get(i));
+}
+```
+
+##### Set和List对比
+
+List有序，元素可重复；Set无序，元素不可重复
+
+ List 支持for循环，也就是通过下标来遍历，也可以用迭代器，但是Set只能用迭代，因为他无序，无法用下标来取得想要的值
+
+#### Set接口
+
+Set集合不允许有重复的元素存在。
+
+无序的： Set集合中的元素也是没有前后顺序的。
+
+##### HashSet
+
+底层采用的HashMap的实现。
+
+在使用迭代器遍历元素时，元素的顺序不固定。
+
+初始容量是16，加载因子是0.75。（加载因子是扩容时的元素与容量比例。）
+
+##### LinkedHashSet
+
+底层实现是HashMap+双向链表。
+
+链表用来保存元素插入的顺序，不受重新插入的影响。
+
+元素的迭代顺序是按照插入顺序进行的。
+
+##### TreeSet
+
+底层基于TreeMap实现的。
+
+有序的：根据元素的自然顺序或比较顺序决定。
+
+**TreeSet中的元素，必须提供比较大小的方式：**
+
+1） 要么是自然顺序。
+
+2） 要么是实现了Comparable接口。
+
+##### HashSet的实现原理
+
+HashSet 是基于 HashMap 实现的，HashSet的值存放于HashMap的key上，HashMap的value统一为PRESENT，因此 HashSet 的实现比较简单，相关 HashSet 的操作，基本上都是直接调用底层HashMap 的相关方法来完成，因为HashMap的key不能重复，所以HashSet 不允许重复的值。
+
+
+
+#### Queue接口
+
+
+
+### Map接口
+
+#### HashMap
+
+允许使用null键和null值；无序；
+
+##### 底层实现
+
+早期JDK中，HashMap底层采用数组和双向链表
+
+JDK8中，HashMap的实现采用数组，双向链表和红黑树（当冲突元素达到8个时会转换为红黑树_，当冲突元素减少到6个时会转换为链表。）
+
+- 数组就是Hash中的桶
+
+- 双向链表是为了解决哈希冲突，此处解决哈希冲突的方式是链式地址法（将所有产生冲突的关键字所对应的数据全部存储在同一个线性链表中）（根据hash(key)中去桶中查找，然后再根据key去遍历链表查找）
+
+![image-20220719115251257](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220719115251257.png)
+
+- 红黑树是为了解决哈希冲突元素过多，链表过长，查找效率降低
+
+​		当冲突链表的元素长度>=8时，链表将转化成红黑树
+
+​		当红黑树上的元素<=6位时，红黑树会再转回链表
+
+#### HashTable
+
+线程同步，HashTable 内部的方法基本都经过 synchronized 修饰。
+
+加的是全局的锁
+
+不允许使用null键和null值
+
+其他与HashMap一样
+
+#### ConcurrentHashMap
+
+线程同步的
+
+添加的是局部锁，只锁操作的当前的桶，同步效率比HashTable高
+
+#### LinkedHashMap
+
+底层实现采用再HashMap基础上又增加了一个双向链表；
+
+当对key进行遍历时，按照key添加的顺序进行；
+
+#### TreeMap
+
+底层是纯红黑树
+
+元素是有自然顺序的，获取由Comparable接口，又或者是Comparator来指定顺序
+
+这时key的遍历是由顺序的
+
+
+
+#### 哈希冲突与解决方法
+
+两个不同的key，经过哈希函数的运算得到的哈希地址是相同的。
+
+教室总共60座位，座位号 = 身份证号 % 60。
+
+两个学生的座位号会相同，这就是哈希冲突。
+
+通常用的处理冲突的方法有以下几种：
+
+1） 开放定址法
+
+H（key）=（H（key）+ d）MOD m（其中 m 为哈希表的表长，d 为一个增量） 当得出的哈希地址产生冲突时，选取以下 3 种方法中的一种获取 d 的值，然后继续计算，直到计算出的哈希地址不在冲突为止，这 3 种方法为：
+
+1. 线性探测法：d=1，2，3，…，m-1
+2. 二次探测法：d=12，-12，22，-22，32，…
+3. 伪随机数探测法：d=伪随机数(每次生成时, 序列是一样的)
+
+2）再哈希法
+
+当通过哈希函数求得的哈希地址同其他关键字产生冲突时，使用另一个哈希函数计算，直到冲突不再发生。
+
+3） **链地址法**（HashMap中采用）
+
+将所有产生冲突的关键字所对应的数据全部存储在同一个线性链表中。
+
+这种方式是Java中的常用的方式。
+
+4） 建立一个公共溢出区
+
+建立两张表，一张为基本表，另一张为溢出表。基本表存储没有发生冲突的数据，当关键字由哈希函数生成的哈希地址产生冲突时，就将数据填入溢出表。
+
+
+
+## 异常处理
+
+### 异常的概述
+
+在 Java 中，所有的异常都有一个共同的祖先 java.lang 包中的 **Throwable**类。Throwable： 有两个重
+
+要的子类：**Exception**（异常）和 **Error**（错误）
+
+注：异常和错误的区别：异常能被程序本身处理，错误是无法处理的。
+
+- Error（错误）: 是程序无法处理的错误。大多数是JVM出现的问题。如系统崩溃，内存不足，堆栈溢出 等
+
+- Exception（异常）: 是程序本身可以处理的异常
+
+  1. 运行时异常：运行时异常都是RuntimeException类的子类，不需要强制添加对异常的处理。
+
+     常见的运行时异常：**NullPointerException**（要访问的变量没有引用任何对象时，抛出该异常）、**ArithmeticException**（算术运算异常，一个整数除以 0 时，抛出该异常）和**ArrayIndexOutOfBoundsException** （下标越界异常）等。
+
+  2. 编译时异常：编译时异常都不是RuntimeException类的子类，必须对异常进行处理，否则在编译时报语法错误。
+
+     常见的编译时异常：ParseException
+
+  
+
+
+
+![image-20220720144004873](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220720144004873.png)
+
+### 异常的捕获
+
+使用try...catch...finally代码块捕获异常并进行处理
+
+```
+try{
+	可能产生异常的代码;
+} catch(异常类型 变量) {
+	异常产生时的处理代码;
+} finally {
+	最后必须执行的代码;
+}
+```
+
+- try 块：用于捕获异常。其后可接零个或多个 catch 块，如果没有 catch块，则必须跟一个 finally 块。
+
+- catch 块：用于处理 try 捕获到的异常。
+
+-  finally 块：无论是否捕获或处理异常，finally 块里的语句都会被执行。（可以没有）
+
+  注：**当在 try 块或 catch 块中遇到 return 语句时，finally 语句块将在方法返回之前被执行。**
+
+  在以下4中特殊情况下，finally块不会被执行：
+
+  1. 在finally语句块中发生了异常；
+  2. 在前面的代码中用了 System.exit()退出程序。
+  3. 程序所在的线程死亡。
+  4. 关闭 CPU。
+
+**注意事项：**
+
+1） catch代码块可以有，也可以没有，也可以有多个。
+
+2） 如果有多个catch，catch后的异常不能相同，如果这些异常有父子关系，父异常放在后面，子异常放在前面。
+
+3） 当try后代码块抛出异常时，会检查与catch后的异常是否匹配，匹配则进入catch执行，不匹配则再看下一个catch。
+
+4） 如果try抛出的异常与所有的catch异常都不匹配，这时继续向上抛出异常。
+
+5） 一个catch可以同时处理多个异常类型，这些异常要使用|作为分隔符。
+
+6）finally可以省略，如果有，无论try后的代码块是否抛出异常，finally后的代码块一定会执行，即使前面已经执行return。
+
+```
+public static void main(String[] args) {
+	int res = test();
+
+	System.out.println(res);    // 11
+}
+
+public static int test() {
+
+	int i = 10;
+
+	try {
+		return i++;   // return  ( 10 );   i = 11     step1
+	} catch (Exception e) {
+	
+	} finally {
+		return i--;		// return ( 11 );  i = 10     step2
+	}
+}
+```
+
+### 向上抛出
+
+向上抛出是指在方法上使用throws关键字，向方法的调用者抛出异常。
+
+### 主动抛出异常
+
+创建一个异常对象，并进行抛出
+
+```
+thorw new 异常类型();
+```
+
+### 自定义异常
+
+自己写一个类继承自Exception或者RuntimeExcption类。
+
+## IO流
+
+### 概念
+
+Java的IO流是实现输入/输出的基础，它可以方便地实现数据的输入/输出操作，在Java中把不同的输入/输出源抽象表述为"流"。流是一组有顺序的，有起点和终点的字节集合，是对数据传输的总称或抽象。即数据在两设备间的传输称为流，流的本质是数据传输。
+
+流有输入和输出，输入时是流从数据源流向程序。输出时是流从程序传向数据源，而数据源可以是内存，文件，网络或程序等。
+
+### 流的分类
+
+根据流的流向以及操作的数据单元不同，将流分为了四种类型，每种类型对应一种抽象基类。这四种抽象基类分别为：InputStream,Reader,OutputStream以及Writer。四种基类下，对应不同的实现类，具有不同的特性。
+
+![image-20220720164821805](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220720164821805.png)
+
+#### 按照数据的流向（输入流和输出流）
+
+- 输入流：
+
+  由程序的外部流向程序。
+
+- 输出流：
+
+  由程序流向程序的外部
+
+#### 按照数据的单位（字节流和字符流）
+
+- 字节流：
+
+  以字节为单位进行传输。可以传输任何类型的数据
+
+- 字符流：
+
+  以字符为单位进行传输。其实是对字节流的一种包装，本质其实就是基于字节流读取时，去查了指定的码表。
+
+  字符流在传输文本时比较方便。
+
+  
+
+## 反射机制
+
+在Java程序运行过程中，动态获取类的信息，并且对类进行一定的操作。
+
+通过反射机制可以操作字节码文件（可以读和修改字节码文件(.class文件)）
+
+就是通过字节码文件去操作类
+
+### Class类
+
+Class类的对象，是用来描述Java中的每一种类型，包括类，接口，枚举，注解，数组，基本数据类型，void。
+
+在一个类的 Class对象中，有对这个类的所有描述信息：
+
+1）类名、权限修饰符、泛型、父类、父接口；
+
+2）属性、方法、构造方法；
+
+3）调用类的属性、方法、构造方法
+
+#### 获取一个类的Class对象
+
+1. 类名.class
+2. 对象.getClass();
+3. Class.forName("类的全限定名称")
+
+```java
+// 1
+Class cls1 = Staff.class;
+// 2
+Staff staff = new Staff();
+Class cls2 = staff.getClass();
+// 3
+Class cls3 = Class.forName("entity.Staff");
+
+System.out.println(cls1 == cls2); // true
+System.out.println(cls2 == cls3); // true
+```
+
+#### 通过反射实例化对象
+
+```java
+Class对象.newInstance();   //这是无参构造的简写
+
+//有参构造（有参构造的参数列表为空即为无参构造）
+//1.获取这个有参的构造方法  getConstructor/getDeclaredConstructor(参数列表)
+Constructor c1 = vipClass.getDeclaredConstructor(int.class, String.class, String.class, boolean.class);
+//2.调用构造方法new出对象
+Object obj2 = c1.newInstance(321, "lsi", "1999-10-11", true);//Constructor类的newInstance方法
+```
+
+注：Class对象的newInstance()方法内部实际上调用了**无参数构造方法**，必须保证无参构造存在才可以
+
+#### 通过反射获取类的属性  Field类
+
+```java
+Class cls1 = Staff.class;
+//获取属性
+Field phone = cls1.getField("phone"); //getField()只能获取public的属性,getDeclaredField()可以获取私有的和非私有的属性
+// 设置staff的phone的值
+phone.set(staff, "123123");
+phone.get(staff);
+
+```
+
+注：set()不可以访问私有属性
+
+```
+解决方法：
+//强制获取私有字段的操作权限
+idCard.setAccessible(true);
+idCard.set(staff, "999999");
+```
+
+#### 通过反射调用类的方法  Method类
+
+```
+方法.invoke(对象, 实参);
+Method toString = cls1.getMethod("toString");
+//调用
+String str = (String) toString.invoke(staff);
+```
+
+### 反射的作用
+
+框架的底层基本上都是基于反射的
+
+### 内省
+
+内省是基于反射实现的，主要用于JavaBean。可以获取bean的getter/setter方法，也就是说，只要JavaBean有getXxx()方法，不管这个bean有没有Xxx属性，使用内省我们都认为它有。
+
+#### JavaBean的规范
+
+- 必须要有一个默认构造器
+
+- 提供 get/set 方法，如果只有 get 方法，那么这个属性是只读属性。
+- 属性：有 get/set 方法的成员，还可以没有成员，只有 get/set 方法。属性名称由 get/set 方法来决定，而不是成员名称。
+
+- 方法名称满足一定的规范，它就是属性！boolean 类型的属性，它的读方法可以是 is 开头，也可以是 get 开头。
+
+#### Introspector操作JavaBean
+
+每个 PropertyDescriptor 对象对应一个 JavaBean 属性：
+
+- String getName()：获取 JavaBean 属性名称；
+- Method getReadMethod()：获取属性的读方法；
+- Method getWriteMethod()：获取属性的写方法。
+
+然后再调用invoke(params...)就可以操作 JavaBean 了。
+
+```java
+//获取JavaBean信息
+BeanInfo beanInfo = Introspector.getBeanInfo(User.class);
+//获取User类的属性信息
+PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
+```
+
+案例：**把Map转成对象**
+
+```java
+public <T> T mapToObj(Map<String, Object> map, Class<T> cls) {
+        // 反射+内省，内省是对反射的封装，基于JavaBean
+        try {
+            // 反射创建对象
+            T t = cls.newInstance();
+            // 获取JavaBean信息
+            BeanInfo beanInfo = Introspector.getBeanInfo(cls);
+            // 获取cls类的属性信息
+            PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+            // 遍历所有属性
+            for (PropertyDescriptor prop : propertyDescriptors) {
+                //属性的名字
+                String propName = prop.getName();
+                Method setters = prop.getWriteMethod();//set方法
+                // 调用set方法，将map中的值设置到属性上
+                Object value = map.get(propName);
+                if (value != null && setters != null) {
+                    try {
+                        setters.invoke(t, value);
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return t;
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IntrospectionException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+```
+
+#### 反射和内省的区别
+
+反射就像给类照镜子，这个的所有信息会毫无保留的反射到镜子中，将这个类的所有信息照出来，能照出来就是有，照不出来就是没有，得到的东西都是客观真实存在的。
+
+而内省的目的是找出 bean 的 getter 和 setter 以便操作这个 bean，所以只要看到有 getter 或者 setter 就认为这个类有那么一个字段，比如看到 getName() 内省就会认为这个类中有 name 字段，但事实上并不一定会有 name。
+
