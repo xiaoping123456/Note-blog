@@ -162,14 +162,9 @@ while (resultSet.next()) {
 ## JDBC封装
 
 ```java
-/**
- * @author 小王造轮子
- * @description
- * @date 2022/7/25
- */
-public class BaseDao {
+public class DBUtil {
 
-    private static final String URL = "jdbc:mysql://localhost:3307/staff?serverTimezone=GMT%2b8&useUnicode=true" +
+    private static final String URL = "jdbc:mysql://localhost:3307/staffmgr?serverTimezone=GMT%2b8&useUnicode=true" +
             "&Character=utf-8";
     private static final String USERNAME = "root";
     private static final String PASSWORD = "xiaoping";

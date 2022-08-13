@@ -343,7 +343,7 @@ docker run -d -p 5000:5000 training/webapp python app.py
 
 ## Docker应用部署
 
-### 一、部署MySQL
+### 示例：部署MySQL
 
 1. 搜索mysql镜像
 
@@ -394,4 +394,339 @@ docker exec –it c_mysql /bin/bash
 5. 使用外部机器连接容器中的mysql
 
 ![image-20220728112823968](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220728112823968.png)
+
+## Dockerfile
+
+### Docker镜像原理
+
+docker镜像是由特殊的文件系统叠加而成
+
+最低端是bootfs，并使用宿主机的bootfs
+
+第二层是root文件系统rootfs，称为base image（基础镜像）
+
+然后再往上可以叠加其他的镜像文件
+
+统一文件系统技术能够将不同的层整合成一个文件系统，为这些层提供了一个统一的视角，这样就隐藏了多层的存在，在用户的角度看来，只存在一个文件系统
+
+一个镜像可以放在另一个镜像的上面。位于下面的镜像称为父镜像，最底部的镜像成为基础镜像。
+
+当从一个镜像启动容器时，Docker会在最顶层加载一个读写文件系统作为容器
+
+![image-20220728221056597](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220728221056597.png)
+
+**灵魂三问**
+
+1. Docker 镜像本质是什么？
+
+   是一个分层文件系统
+
+2. Docker 中一个centos镜像为什么只有200MB，而一个centos操作系统的iso文件要几个G？
+
+   Centos的iso镜像文件包含bootfs和rootfs，而docker的centos镜像复用操作系统的bootfs，只有rootfs和其他镜像层
+
+3. Docker 中一个tomcat镜像为什么有500MB，而一个tomcat安装包只有70多MB？
+
+   由于docker中镜像是分层的，tomcat虽然只有70多MB，但他需要依赖于父镜像和基础镜像，所有整个对外暴露的tomcat镜像大小500多MB
+
+### Dockerfile概念
+
+Dockerfile 是一个用来构建镜像的文本文件，文本内容包含了一条条构建镜像所需的指令和说明。每一条指令构建一层镜像，因此每一条指令的内容，就是描述该层镜像应当如何构建。
+
+- 对于开发人员：可以为开发团队提供一个完全一致的开发环境
+
+- 对于测试人员：可以直接拿开发时所构建的镜像或者通过Dockerfile文件构建一个新的镜像开始工作了
+
+- 对于运维人员：在部署时，可以实现应用的无缝移植
+
+**Dockerfile的格式**
+
+已#开头为注释行
+
+由专用“指令（Instruction）”开头的指令行
+
+**常用指令**
+
+| 关键字      | 作用                     | 备注                                                         |
+| ----------- | ------------------------ | ------------------------------------------------------------ |
+| FROM        | 指定父镜像               | 指定dockerfile基于那个image构建                              |
+| MAINTAINER  | 作者信息                 | 用来标明这个dockerfile谁写的                                 |
+| LABEL       | 标签                     | 用来标明dockerfile的标签 可以使用Label代替Maintainer 最终都是在docker image基本信息中可以查看 |
+| RUN         | 执行命令                 | 执行一段命令 默认是/bin/sh 格式: RUN command 或者 RUN ["command" , "param1","param2"] |
+| CMD         | 容器启动命令             | 提供启动容器时候的默认命令 和ENTRYPOINT配合使用.格式 CMD command param1 param2 或者 CMD ["command" , "param1","param2"] |
+| ENTRYPOINT  | 入口                     | 一般在制作一些执行就关闭的容器中会使用                       |
+| COPY        | 复制文件                 | build的时候复制文件到image中                                 |
+| ADD         | 添加文件                 | build的时候添加文件到image中 不仅仅局限于当前build上下文 可以来源于远程服务 |
+| ENV         | 环境变量                 | 指定build时候的环境变量 可以在启动的容器的时候 通过-e覆盖 格式ENV name=value |
+| ARG         | 构建参数                 | 构建参数 只在构建的时候使用的参数 如果有ENV 那么ENV的相同名字的值始终覆盖arg的参数 |
+| VOLUME      | 定义外部可以挂载的数据卷 | 指定build的image那些目录可以启动的时候挂载到文件系统中 启动容器的时候使用 -v 绑定 格式 VOLUME ["目录"] |
+| EXPOSE      | 暴露端口                 | 定义容器运行的时候监听的端口 启动容器的使用-p来绑定暴露端口 格式: EXPOSE 8080 或者 EXPOSE 8080/udp |
+| WORKDIR     | 工作目录                 | 指定容器内部的工作目录 如果没有创建则自动创建 如果指定/ 使用的是绝对地址 如果不是/开头那么是在上一条workdir的路径的相对路径 |
+| USER        | 指定执行用户             | 指定build或者启动的时候 用户 在RUN CMD ENTRYPONT执行的时候的用户 |
+| HEALTHCHECK | 健康检查                 | 指定监测当前容器的健康监测的命令 基本上没用 因为很多时候 应用本身有健康监测机制 |
+| ONBUILD     | 触发器                   | 当存在ONBUILD关键字的镜像作为基础镜像的时候 当执行FROM完成之后 会执行 ONBUILD的命令 但是不影响当前镜像 用处也不怎么大 |
+| STOPSIGNAL  | 发送信号量到宿主机       | 该STOPSIGNAL指令设置将发送到容器的系统调用信号以退出。       |
+| SHELL       | 指定执行脚本的shell      | 指定RUN CMD ENTRYPOINT 执行命令的时候 使用的shell            |
+
+- FROM
+
+  指定基础镜像，必须为第一个指令
+
+  ```
+  格式：   
+     FROM <image>
+  　　FROM <image>:<tag>
+  　　FROM <image>@<digest>
+  
+  示例：　　
+  	FROM mysql:5.6
+  注：
+     tag或digest是可选的，如果不使用这两个值时，会使用latest版本的基础镜像
+  ```
+
+- MAINTAINER
+
+  维护者信息 （也可以不写）
+
+  ```
+  格式：
+      MAINTAINER <name>
+  示例：
+      MAINTAINER bertwu
+      MAINTAINER xxx@163.com
+      MAINTAINER bertwu <xxx@163.com>
+  ```
+
+- RUN
+
+  构建镜像时执行的命令，有两种执行方式
+
+  ```
+  shell执行
+  格式：
+      RUN <command>
+  exec执行
+  格式：
+      RUN ["executable", "param1", "param2"]
+  示例：
+      RUN ["executable", "param1", "param2"]
+      RUN apk update
+      RUN ["/etc/execfile", "arg1", "arg1"]
+  注：RUN指令创建的中间镜像会被缓存，并会在下次构建中使用。如果不想使用这些缓存镜像，
+  可以在构建时指定--no-cache参数，如：docker build --no-cache
+  ```
+
+- ADD
+
+  将本地文件添加到容器中，tar类型文件会自动解压(网络压缩资源不会被解压)，可以访问网络资源，类似wget
+
+  ```
+  格式：
+      ADD <src>... <dest>
+      ADD ["<src>",... "<dest>"] 用于支持包含空格的路径
+  示例：
+      ADD hom* /mydir/          # 添加所有以"hom"开头的文件
+      ADD hom?.txt /mydir/      # ? 替代一个单字符,例如："home.txt"
+      ADD test relativeDir/     # 添加 "test" 到 `WORKDIR`/relativeDir/
+      ADD test /absoluteDir/    # 添加 "test" 到 /absoluteDir/
+  ```
+
+  
+
+- CMD
+
+  构建镜像后调用，也就是在容器启动时才进行调用。
+
+  ```
+  格式：
+      CMD ["executable","param1","param2"] (执行可执行文件，优先)
+      CMD ["param1","param2"] (设置了ENTRYPOINT，则直接调用ENTRYPOINT添加参数)
+      CMD command param1 param2 (执行shell内部命令)
+  示例：
+      CMD echo "This is a test." | wc -l
+      CMD ["/usr/bin/wc","--help"]
+  
+  注：CMD不同于RUN，CMD用于指定在容器启动时所要执行的命令，而RUN用于指定镜像构建时所要执行的命令。
+  ```
+
+  
+
+- WORKDIR
+
+  工作目录，类似于cd命令
+
+  ```
+  格式：
+      WORKDIR /path/to/workdir
+  示例：
+      WORKDIR /a  (这时工作目录为/a)
+      WORKDIR b  (这时工作目录为/a/b)
+      WORKDIR c  (这时工作目录为/a/b/c)
+  注：　
+    通过WORKDIR设置工作目录后，Dockerfile中其后的命令RUN、CMD、ENTRYPOINT、ADD、COPY
+    等命令都会在该目录下执行。在使用docker run运行容器时，可以通过-w参数覆盖构建时所设置的工作目录。
+  ```
+
+  
+
+- 
+
+### 制作镜像
+
+#### 案例一：制作centos镜像
+
+下面通过编写Dockerfile文件来制作Centos镜像，并在官方镜像的基础上添加vim和net-tools工具。首先在/home/dockfile 目录下新建文件Dockerfile。然后使用上述指令编写该文件。
+
+```shell
+Dockerfile
+[root@localhost dockerfile]# cat Dockerfile 
+FROM centos:7
+MAINTAINER bertwu <1258398543@qq.com>
+ENV MYPATH /usr/local
+WORKDIR $MYPATH
+RUN yum -y install vim   net-tools
+EXPOSE 80
+CMD /bin/bash
+```
+
+逐行解释该Dockerfile文件的指令：
+
+FROM centos:7 该image文件继承官方的centos7
+ENV MYPATH /usr/local：设置环境变量MYPATH
+WORKDIR $MYPATH：直接使用上面设置的环境变量，指定/usr/local为工作目录
+RUN yum -y install vim && net-tools：在/usr/local目录下，运行yum -y install vim和yum -y install net-tools命令安装工具，注意安装后的所有依赖和工具都会打包到image文件中
+EXPOSE 80：将容器80端口暴露出来，允许外部连接这个端口
+CMD：指定容器启动的时候运行命令
+下面执行build命令生成image文件，如果执行成功，可以通过docker images来查看新生成的镜像文件。
+
+```shell
+[root@localhost dockerfile]# docker build -t mycentos:1.0 . 
+
+[root@localhost dockerfile]# docker images
+REPOSITORY    TAG             IMAGE ID       CREATED              SIZE
+mycentos      1.0             e0316e2ed3a5   About a minute ago   409MB
+
+```
+
+可以使用 `docker history 镜像id` 查看镜像构建过程
+
+```
+[root@localhost dockerfile]# docker history  e0316e2ed3a5 
+IMAGE          CREATED         CREATED BY                                      SIZE      COMMENT
+e0316e2ed3a5   2 minutes ago   /bin/sh -c #(nop)  CMD ["/bin/sh" "-c" "/bin…   0B        
+79738577ded0   2 minutes ago   /bin/sh -c #(nop)  EXPOSE 80                    0B        
+f10acdc62daf   2 minutes ago   /bin/sh -c yum -y install vim   net-tools       205MB     
+40b0252c02c7   3 minutes ago   /bin/sh -c #(nop) WORKDIR /usr/local            0B        
+d38940eb3b75   3 minutes ago   /bin/sh -c #(nop)  ENV MYPATH=/usr/local        0B        
+b23dc50b92b4   3 minutes ago   /bin/sh -c #(nop)  MAINTAINER bertwu <125839…   0B        
+eeb6ee3f44bd   2 months ago    /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
+<missing>      2 months ago    /bin/sh -c #(nop)  LABEL org.label-schema.sc…   0B        
+<missing>      2 months ago    /bin/sh -c #(nop) ADD file:b3ebbe8bd304723d4…   204MB    
+
+```
+
+#### 案例二：制作springboot应用镜像
+
+```
+cat Dockerfile
+
+FROM openjdk:8-jre # jar包基于jdk ,war包基于tomcat
+WORKDIR /app
+ADD demo-0.0.1-SNAPSHOT.jar app.jar # 将上下文中 jar包复制到 /app目录下，并且重命名为app.jar
+EXPOSE 8081 # 暴露端口
+ENTRYPOINT[ "java" , "-jar" ] # 启动应用固定命令
+CMD["app.jar"] # 动态传递jar包名
+```
+
+![image-20220728225602809](https://picgo111.oss-cn-beijing.aliyuncs.com/image-20220728225602809.png)
+
+## Docker Compose
+
+### 概述
+
+Docker Compose是一个编排多容器分布式部署的工具，提供命令集管理容器化应用的完整开发周期，包括服务构建，启动和停止。使用步骤：
+
+1. 利用 Dockerfile 定义运行环境镜像
+2. 使用 docker-compose.yml 定义组成应用的各服务
+3. 运行 docker-compose up 启动应用
+
+### 安装Docke Compose
+
+```shell
+# Compose目前已经完全支持Linux、Mac OS和Windows，在我们安装Compose之前，需要先安装Docker。下面我 们以编译好的二进制包方式安装在Linux系统中。 
+curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+# 设置文件可执行权限 
+chmod +x /usr/local/bin/docker-compose
+# 查看版本信息 
+docker-compose -version
+```
+
+卸载
+
+```shell
+# 二进制包方式安装的，删除二进制文件即可
+rm /usr/local/bin/docker-compose
+```
+
+### 案例：使用docker compose编排nginx+springboot项目
+
+1. 创建docker-compose目录
+
+```shell
+mkdir ~/docker-compose
+cd ~/docker-compose
+```
+
+2. 编写 docker-compose.yml 文件
+
+```shell
+version: '3'
+services:
+  nginx:
+   image: nginx
+   ports:
+    - 80:80
+   links:
+    - app
+   volumes:
+    - ./nginx/conf.d:/etc/nginx/conf.d
+  app:
+    image: app
+    expose:
+      - "8080"
+```
+
+3. 创建./nginx/conf.d目录
+
+```shell
+mkdir -p ./nginx/conf.d
+```
+
+
+
+4. 在./nginx/conf.d目录下 编写itheima.conf文件
+
+```shell
+server {
+    listen 80;
+    access_log off;
+
+    location / {
+        proxy_pass http://app:8080;
+    }
+   
+}
+```
+
+5. 在~/docker-compose 目录下 使用docker-compose 启动容器
+
+```shell
+docker-compose up
+```
+
+6. 测试访问
+
+```shell
+http://192.168.149.135/hello
+```
 
